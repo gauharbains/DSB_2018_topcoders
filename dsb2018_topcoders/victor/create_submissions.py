@@ -9,6 +9,7 @@ import cv2
 from skimage.color import label2rgb
 from tqdm import tqdm
 from multiprocessing import Pool
+import multiprocessing
 import lightgbm as lgb
 from train_classifier import get_inputs
 import pandas as pd
@@ -27,7 +28,7 @@ color_out_folders = ['color_test_sub1', 'color_test_sub2']
 
 extend_mask_test = path.join(pred_folder, 'merged_extend_test')
 
-DATA_THREADS = 12
+DATA_THREADS = multiprocessing.cpu_count()-1
 
 num_split_iters = 50
 folds_count = 3
@@ -54,7 +55,6 @@ def pred_to_rles(y_pred):
     for i in range(1, y_pred.max() + 1):
         yield rle_encoding(y_pred == i)
         
-            
 if __name__ == '__main__':
     t0 = timeit.default_timer()
     
@@ -64,7 +64,8 @@ if __name__ == '__main__':
         
     for f in color_out_folders:
         if not path.isdir(path.join(pred_folder, f)):
-            mkdir(path.join(pred_folder, f))
+            mkdir(path.join(pred_folder, f))            
+
             
     all_files = []
     inputs = []
@@ -86,18 +87,23 @@ if __name__ == '__main__':
     inputs = []
     paramss = []
     for f in tqdm(sorted(listdir(test_pred_folder))):
-        if path.isfile(path.join(test_pred_folder, f)) and '.png' in f:
+        if path.isfile(path.join(test_pred_folder, f)) :
             img_id = f.split('.')[0]
-            paramss.append((f, test_pred_folder, path.join(test_images_folder, img_id, 'images'), None, extend_mask_test))
+            paramss.append((f, test_pred_folder, path.join(test_images_folder, img_id), None, extend_mask_test))
+    print(paramss)
     
     inputs = []
     inputs2 = []
     labels= []
     labels2 = []
     separated_regions= []
+    print("hello0")
     with Pool(processes=DATA_THREADS) as pool:
         results = pool.starmap(get_inputs, paramss)
+        print(paramss)
+        print("hello1")
     for i in range(len(results)):
+        print("hello2")
         inp, lbl, inp2, lbl2, sep_regs = results[i]
         inputs.append(inp)
         inputs2.append(inp2)
@@ -106,7 +112,7 @@ if __name__ == '__main__':
         separated_regions.append(sep_regs)
 
     for sub_id in range(2):
-        
+        print("hello3")
         print('Creating submission', sub_id)
         new_test_ids = []
         rles = []
@@ -120,7 +126,7 @@ if __name__ == '__main__':
         empty_cnt = 0
         
         for f in tqdm(sorted(listdir(test_pred_folder))):
-            if path.isfile(path.join(test_pred_folder, f)) and '.png' in f:
+            if path.isfile(path.join(test_pred_folder, f)) :
                 img_id = f.split('.')[0]
                 
                 inp = inputs[im_idx]
@@ -176,7 +182,7 @@ if __name__ == '__main__':
                     
                 total_cnt += pred_labels.max()
         
-                cv2.imwrite(path.join(pred_folder, test_out_folders[sub_id], f.replace('.png', '.tif')), pred_labels)
+                cv2.imwrite(path.join(pred_folder, test_out_folders[sub_id],f), pred_labels)
                 
                 rle = list(pred_to_rles(pred_labels))
                 if len(rle) == 0:
@@ -190,7 +196,7 @@ if __name__ == '__main__':
                 clr_labels = label2rgb(pred_labels, bg_label=0)
                 clr_labels *= 255
                 clr_labels = clr_labels.astype('uint8')
-                cv2.imwrite(path.join(pred_folder, color_out_folders[sub_id], '{0}.png'.format(img_id)), clr_labels, [cv2.IMWRITE_PNG_COMPRESSION, 9])
+                cv2.imwrite(path.join(pred_folder, color_out_folders[sub_id],f), clr_labels)
         
                 im_idx += 1
     
