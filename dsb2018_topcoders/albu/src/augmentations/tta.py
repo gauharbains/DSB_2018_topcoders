@@ -10,7 +10,7 @@ class TTAOp:
         self.sigmoid = sigmoid
 
     def __call__(self, model, batch):
-        forwarded = torch.autograd.Variable(torch.from_numpy(self.forward(batch.numpy())), volatile=True).cuda()
+        forwarded = torch.autograd.Variable(torch.from_numpy(self.forward(batch.numpy())), volatile=True)
         return self.backward(self.to_numpy(model(forwarded)))
 
     def forward(self, img):

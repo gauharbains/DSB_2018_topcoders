@@ -9,6 +9,9 @@ import timeit
 import cv2
 from models import get_densenet121_unet_softmax
 from tqdm import tqdm
+import bioformats
+import javabridge
+import bfio
 
 test_folder = path.join('..', 'data_test')
 
@@ -33,6 +36,15 @@ def bgr_to_lab(img):
         lab = 255 - lab
     return lab[..., np.newaxis]
 
+def load_image(path):
+    bf = bfio.BioReader(path)    
+    image = bf.read_image()
+    image=image[:,:,0,:,0]
+    if image.shape[2] == 3:
+        return image
+    elif image.shape[2]==1:
+        return np.dstack((image[:,:,0], image[:,:,0],image[:,:,0]))
+
 if __name__ == '__main__':
     t0 = timeit.default_timer()
 
@@ -50,12 +62,12 @@ if __name__ == '__main__':
         
     print('Predicting test')
     for d in tqdm(listdir(test_folder)):
-        if not path.isdir(path.join(test_folder, d)):
-            continue
+
         final_mask = None
         for scale in range(3):
             fid = d
-            img = cv2.imread(path.join(test_folder, fid, 'images', '{0}.png'.format(fid)), cv2.IMREAD_COLOR)
+            img = cv2.imread(path.join(test_folder, fid), cv2.IMREAD_COLOR)
+            #img=load_image(path.join(test_folder, fid))[...,::-1]
             if final_mask is None:
                 final_mask = np.zeros((img.shape[0], img.shape[1], 3))
             if scale == 1:
@@ -126,7 +138,7 @@ if __name__ == '__main__':
         final_mask /= 3
         final_mask = final_mask * 255
         final_mask = final_mask.astype('uint8')
-        cv2.imwrite(path.join(test_pred, '{0}.png'.format(fid)), final_mask, [cv2.IMWRITE_PNG_COMPRESSION, 9])
+        cv2.imwrite(path.join(test_pred, d), final_mask)
         
     elapsed = timeit.default_timer() - t0
     print('Time: {:.3f} min'.format(elapsed / 60))

@@ -115,8 +115,9 @@ def get_inputs(filename, pred_folder, img_folder, truth_folder=None, extend_mask
         ext_pred_reg = ext_pred_reg.astype('uint8')
         
         contours = cv2.findContours((msk_reg * 255).astype(dtype=np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        if len(contours[1]) > 0:
-            cnt = contours[1][0]
+        
+        if len(contours[0]) > 0:
+            cnt = contours[0][0]
             min_area_rect = cv2.minAreaRect(cnt)
         
         inp = []
@@ -251,8 +252,10 @@ def get_inputs(filename, pred_folder, img_folder, truth_folder=None, extend_mask
             ext_pred_reg = ext_pred_reg.astype('uint8')
         
             contours = cv2.findContours((msk_reg * 255).astype(dtype=np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-            if len(contours[1]) > 0:
-                cnt = contours[1][0]
+            
+
+            if len(contours[0]) > 0:
+                cnt = contours[0][0]
                 min_area_rect = cv2.minAreaRect(cnt)
         
             inp = []

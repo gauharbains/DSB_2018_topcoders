@@ -60,7 +60,7 @@ def create_mask(img_id):
     msk = np.stack((msk0, msk1, msk2))
     msk = np.rollaxis(msk, 0, 3)
     
-    cv2.imwrite(path.join(masks_out_folder, '{0}.png'.format(img_id)), msk, [cv2.IMWRITE_PNG_COMPRESSION, 9])
+    cv2.imwrite(path.join(masks_out_folder, '{0}.tif'.format(img_id)), msk)
     return 0
 
 if __name__ == '__main__':

@@ -6,10 +6,10 @@ import cv2
 def merge_files(root):
     res_path = os.path.join('..', '..', 'predictions', os.path.split(root)[-1] + '_test')
     os.makedirs(res_path, exist_ok=True)
-    prob_files = {f for f in os.listdir(root) if os.path.splitext(f)[1] in ['.png']}
+    prob_files = {f for f in os.listdir(root) }
     unfolded = {f[6:] for f in prob_files if f.startswith('fold')}
-    if not unfolded:
-        unfolded = prob_files
+   # if not unfolded:
+       # unfolded = prob_files
 
     for prob_file in tqdm.tqdm(unfolded):
         probs = []
@@ -17,7 +17,7 @@ def merge_files(root):
             prob = os.path.join(root, 'fold{}_'.format(fold) + prob_file)
             prob_arr = cv2.imread(prob, cv2.IMREAD_UNCHANGED)
             probs.append(prob_arr)
-        prob_arr = np.mean(probs, axis=0)
+        prob_arr = np.mean(probs, axis=0).astype(np.uint8)
 
         res_path_geo = os.path.join(res_path, prob_file)
         cv2.imwrite(res_path_geo, prob_arr)

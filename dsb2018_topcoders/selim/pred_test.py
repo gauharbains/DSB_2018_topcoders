@@ -1,5 +1,8 @@
-import os
 
+import os
+import logging
+
+print("hello welcome 59845")
 from params import args
 
 os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
@@ -10,9 +13,10 @@ from keras.applications.imagenet_utils import preprocess_input
 
 from models.model_factory import make_model
 
-from os import path, mkdir, listdir
-import numpy as np
 
+from os import path, mkdir, listdir
+
+import numpy as np
 np.random.seed(1)
 import random
 
@@ -22,7 +26,7 @@ import tensorflow as tf
 tf.set_random_seed(1)
 import timeit
 import cv2
-from tqdm import tqdm
+from tqdm import tqdm    
 
 test_folder = args.test_folder
 test_pred = os.path.join(args.out_root_dir, args.out_masks_folder)
@@ -31,15 +35,22 @@ all_ids = []
 all_images = []
 all_masks = []
 
-OUT_CHANNELS = args.out_channels
-
+OUT_CHANNELS = args.out_channels    
+    
 def preprocess_inputs(x):
     return preprocess_input(x, mode=args.preprocessing_function)
 
 if __name__ == '__main__':
-    t0 = timeit.default_timer()
 
-    weights = [os.path.join(args.models_dir, m) for m in args.models]
+    print("hello welcome 121212121")
+    logging.basicConfig(format='%(asctime)s - %(name)-8s - %(levelname)-8s - %(message)s',
+                    datefmt='%d-%b-%y %H:%M:%S')
+    logger = logging.getLogger("main")
+    logger.setLevel(logging.INFO)
+    
+    t0 = timeit.default_timer()
+    logger.info("Loading model weights")
+    weights = [path.join(args.models_dir, m) for m in args.models]
     models = []
     for w in weights:
         model = make_model(args.network, (None, None, 3))
@@ -49,13 +60,12 @@ if __name__ == '__main__':
     os.makedirs(test_pred, exist_ok=True)
     print('Predicting test')
     for d in tqdm(listdir(test_folder)):
-        if not path.isdir(path.join(test_folder, d)):
-            continue
+
         final_mask = None
         for scale in range(1):
             fid = d
-            img = cv2.imread(path.join(test_folder, fid, 'images', '{0}.png'.format(fid)), cv2.IMREAD_COLOR)[...,::-1]
-
+            img = cv2.imread(path.join(test_folder, fid), cv2.IMREAD_COLOR)[...,::-1]
+            
             if final_mask is None:
                 final_mask = np.zeros((img.shape[0], img.shape[1], OUT_CHANNELS))
             if scale == 1:
@@ -123,8 +133,10 @@ if __name__ == '__main__':
         if OUT_CHANNELS == 2:
             final_mask = np.concatenate([final_mask, np.zeros_like(final_mask)[..., 0:1]], axis=-1)
         final_mask = final_mask * 255
-        final_mask = final_mask.astype('uint8')
-        cv2.imwrite(path.join(test_pred, '{0}.png'.format(fid)), final_mask, [cv2.IMWRITE_PNG_COMPRESSION, 9])
+        final_mask = final_mask.astype('uint8')         
+        
+        cv2.imwrite(path.join(test_pred,d), final_mask)
 
     elapsed = timeit.default_timer() - t0
     print('Time: {:.3f} min'.format(elapsed / 60))
+  

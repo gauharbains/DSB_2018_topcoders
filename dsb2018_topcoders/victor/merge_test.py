@@ -21,6 +21,18 @@ pred_folders = [
         ('resnet_softmax', 'resnet_softmax_test', 1),
         ]
 
+#pred_folders = [
+        
+#        ('densenet_oof_pred_2', 'densenet_test_pred_2', 1),
+        
+  #      ('inception_oof_pred_4', 'inception_test_pred_4', 2),
+ #       ('oof_resnet152', 'pred_resnet152', 1),
+ #       ('oof_resnet101_full_masks', 'pred_resnet101_full_masks', 1),
+ #       ('oof_densenet169_softmax', 'pred_densenet169_softmax', 1),
+        
+  #      ]
+
+
 out_folder = path.join('..', 'predictions')
 test_out = path.join(out_folder, 'merged_test')
 test_extend_out = path.join(out_folder, 'merged_extend_test')
@@ -36,7 +48,7 @@ if __name__ == '__main__':
     w_sum = np.sum([p[2] for p in pred_folders])            
             
     for f in tqdm(sorted(listdir(path.join(out_folder, pred_folders[0][1])))):
-        if path.isfile(path.join(out_folder, pred_folders[0][1], f)) and '.png' in f:
+        if path.isfile(path.join(out_folder, pred_folders[0][1], f)):
             pred_res = None
             ext_res = None
             for i in range(len(pred_folders)):
@@ -54,8 +66,8 @@ if __name__ == '__main__':
             ext_res /= 2
             pred_res = pred_res.astype('uint8')
             ext_res = ext_res.astype('uint8')
-            cv2.imwrite(path.join(test_out, f), pred_res, [cv2.IMWRITE_PNG_COMPRESSION, 9])
-            cv2.imwrite(path.join(test_extend_out, f), ext_res, [cv2.IMWRITE_PNG_COMPRESSION, 9])
+            cv2.imwrite(path.join(test_out, f), pred_res)
+            cv2.imwrite(path.join(test_extend_out, f), ext_res)
             
     elapsed = timeit.default_timer() - t0
     print('Time: {:.3f} min'.format(elapsed / 60))
